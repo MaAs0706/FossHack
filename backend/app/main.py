@@ -1,38 +1,44 @@
-from fastapi import FastAPI
-
-import httpx
-import os
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
 from dotenv import load_dotenv
+from app.database import engine, get_db, Base
+from app.models import AQIReading
+from app.scheduler import start_scheduler, fetch_and_save_aqi
+import asyncio
 
 load_dotenv()
 
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 
-WAQI_TOKEN = os.getenv("WAQI_TOKEN")
+@app.on_event("startup")
+async def startup():
+    await fetch_and_save_aqi()  
+    start_scheduler()            
 
 @app.get("/")
 def hello():
-    return {"message":"AQI Kerala API is running "}
+    return {"message": "AQI Kerala API is running"}
 
 @app.get("/aqi/kerala")
-async def get_kerala_aqi():
-    url = f"https://api.waqi.info/map/bounds/?latlng=8.0,74.8,12.5,77.5&token={WAQI_TOKEN}"
+def get_kerala_aqi(db: Session = Depends(get_db)):
+    readings = db.query(AQIReading)\
+                 .order_by(AQIReading.recorded_at.desc())\
+                 .all()
     
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        data = response.json()
+    seen = set()
+    latest = []
     
-    stations = []
-    for station in data["data"]:
-       
-        if station["aqi"] == "-":
-            continue
-        
-        stations.append({
-            "name": station["station"]["name"],
-            "lat": station["lat"],
-            "lng": station["lon"],
-            "aqi": int(station["aqi"])
-        })
+    for reading in readings:
+        if reading.name not in seen:
+            seen.add(reading.name)
+            latest.append({
+                "name": reading.name,
+                "lat": reading.lat,
+                "lng": reading.lng,
+                "aqi": reading.aqi,
+                "recorded_at": reading.recorded_at
+            })
     
-    return stations
+    return latest
