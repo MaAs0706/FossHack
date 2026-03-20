@@ -108,7 +108,7 @@ async def get_school_vulnerability(db: Session = Depends(get_db)):
     # sort by highest risk first
     results.sort(key=lambda x: x["vulnerability_score"], reverse=True)
     
-    return results[:50]  # return top 50 most at-risk
+    return results  # return top 50 most at-risk
 
 @app.get("/vulnerability/hospitals")
 async def get_hospital_vulnerability(db: Session = Depends(get_db)):
@@ -148,4 +148,4 @@ async def get_hospital_vulnerability(db: Session = Depends(get_db)):
         })
     
     results.sort(key=lambda x: x["vulnerability_score"], reverse=True)
-    return results[:50]    
+    return results    

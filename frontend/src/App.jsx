@@ -33,6 +33,8 @@ const LEGEND_ITEMS = [
 
 function App() {
   const [stations, setStations] = useState([])
+  const [showSchools, setShowSchools] = useState(false)
+  const [showHospitals, setShowHospitals] = useState(false)
 
   useEffect(() => {
     fetch('http://localhost:8000/aqi/kerala')
@@ -42,7 +44,7 @@ function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      
+
       {/* Navbar */}
       <div style={{
         background: '#1a1a2e',
@@ -58,6 +60,37 @@ function App() {
         <span style={{ fontSize: '13px', color: '#aaa', marginLeft: '8px' }}>
           Hyperlocal Air Quality Intelligence — Kerala
         </span>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setShowSchools(!showSchools)}
+            style={{
+              background: showSchools ? '#4CAF50' : '#444',
+              color: 'white',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontSize: '13px'
+            }}
+          >
+            🏫 Schools {showSchools ? 'ON' : 'OFF'}
+          </button>
+          <button
+            onClick={() => setShowHospitals(!showHospitals)}
+            style={{
+              background: showHospitals ? '#2196F3' : '#444',
+              color: 'white',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontSize: '13px'
+            }}
+          >
+            🏥 Hospitals {showHospitals ? 'ON' : 'OFF'}
+          </button>
+        </div>
       </div>
 
       {/* Map */}
@@ -93,8 +126,8 @@ function App() {
               </Popup>
             </CircleMarker>
           ))}
-          <SchoolMarkers />
-          <HospitalMarkers />
+          {showSchools && <SchoolMarkers />}
+          {showHospitals && <HospitalMarkers />}
         </MapContainer>
 
         {/* Legend */}
