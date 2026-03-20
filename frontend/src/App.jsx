@@ -1,6 +1,8 @@
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import { useEffect, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
+import SchoolMarkers from './components/SchoolMarkers'
+import HospitalMarkers from './components/HospitalMarkers'
 
 function getColor(aqi) {
   if (aqi <= 50) return '#00e400'
@@ -61,7 +63,7 @@ function App() {
       {/* Map */}
       <div style={{ flex: 1, position: 'relative' }}>
         <MapContainer
-          center={[10.5, 76.2]}
+          center={[10.5, 76.5]}
           zoom={8}
           style={{ height: '100%', width: '100%' }}
         >
@@ -91,6 +93,8 @@ function App() {
               </Popup>
             </CircleMarker>
           ))}
+          <SchoolMarkers />
+          <HospitalMarkers />
         </MapContainer>
 
         {/* Legend */}

@@ -109,3 +109,43 @@ async def get_school_vulnerability(db: Session = Depends(get_db)):
     results.sort(key=lambda x: x["vulnerability_score"], reverse=True)
     
     return results[:50]  # return top 50 most at-risk
+
+@app.get("/vulnerability/hospitals")
+async def get_hospital_vulnerability(db: Session = Depends(get_db)):
+    readings = db.query(AQIReading)\
+                 .order_by(AQIReading.recorded_at.desc())\
+                 .all()
+    
+    seen = set()
+    stations = []
+    for r in readings:
+        if r.name not in seen:
+            seen.add(r.name)
+            stations.append({
+                "name": r.name,
+                "lat": r.lat,
+                "lng": r.lng,
+                "aqi": r.aqi
+            })
+    
+    hospitals = await fetch_amenities("hospital")
+    
+    results = []
+    for hospital in hospitals:
+        if hospital["name"] == "Unknown":
+            continue
+        
+        score = calculate_vulnerability_score(
+            hospital["lat"], hospital["lng"], stations
+        )
+        
+        results.append({
+            "name": hospital["name"],
+            "lat": hospital["lat"],
+            "lng": hospital["lng"],
+            "vulnerability_score": score,
+            "risk_level": get_risk_level(score)
+        })
+    
+    results.sort(key=lambda x: x["vulnerability_score"], reverse=True)
+    return results[:50]    
