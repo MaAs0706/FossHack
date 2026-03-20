@@ -6,6 +6,8 @@ from app.models import AQIReading
 from app.scheduler import start_scheduler, fetch_and_save_aqi
 import asyncio
 from app.osm import fetch_amenities
+from app.scoring import calculate_vulnerability_score, get_risk_level
+
 
 load_dotenv()
 
@@ -51,3 +53,48 @@ async def get_schools():
 @app.get("/hospitals")
 async def get_hospitals():
     return await fetch_amenities("hospital")
+
+@app.get("/vulnerability/schools")
+async def get_school_vulnerability(db: Session = Depends(get_db)):
+    # get latest AQI readings
+    readings = db.query(AQIReading)\
+                 .order_by(AQIReading.recorded_at.desc())\
+                 .all()
+    
+    seen = set()
+    stations = []
+    for r in readings:
+        if r.name not in seen:
+            seen.add(r.name)
+            stations.append({
+                "name": r.name,
+                "lat": r.lat,
+                "lng": r.lng,
+                "aqi": r.aqi
+            })
+    
+   
+    schools = await fetch_amenities("school")
+    
+    
+    results = []
+    for school in schools:
+        if school["name"] == "Unknown":
+            continue
+            
+        score = calculate_vulnerability_score(
+            school["lat"], school["lng"], stations
+        )
+        
+        results.append({
+            "name": school["name"],
+            "lat": school["lat"],
+            "lng": school["lng"],
+            "vulnerability_score": score,
+            "risk_level": get_risk_level(score)
+        })
+    
+    # sort by highest risk first
+    results.sort(key=lambda x: x["vulnerability_score"], reverse=True)
+    
+    return results[:50]  # return top 50 most at-risk
