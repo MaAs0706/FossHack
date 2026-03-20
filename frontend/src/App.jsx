@@ -34,6 +34,40 @@ const LEGEND_ITEMS = [
   { color: '#7e0023', label: 'Hazardous (300+)' },
 ]
 
+function AlertBanner({ stations }) {
+  const dangerous = stations.filter(s => s.aqi > 150)
+  
+  if (dangerous.length === 0) return null
+
+  return (
+    <div style={{
+      background: '#7e0023',
+      color: 'white',
+      padding: '8px 24px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      fontSize: '13px',
+      flexWrap: 'wrap'
+    }}>
+      <span style={{ fontSize: '16px' }}>🚨</span>
+      <span style={{ fontWeight: 'bold' }}>Air Quality Alert:</span>
+      {dangerous.map((s, i) => (
+        <span key={i} style={{
+          background: 'rgba(255,255,255,0.2)',
+          padding: '2px 10px',
+          borderRadius: '12px'
+        }}>
+          {s.name.split(',')[0]} — AQI {s.aqi}
+        </span>
+      ))}
+      <span style={{ color: '#ffaaaa' }}>
+        — Schools and hospitals in these areas are at risk
+      </span>
+    </div>
+  )
+}
+
 function App() {
   const [stations, setStations] = useState([])
   const [showSchools, setShowSchools] = useState(false)
@@ -104,6 +138,9 @@ function App() {
         </div>
       </div>
 
+      {/* Alert Banner */}
+      <AlertBanner stations={stations} />
+
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         <RankingsSidebar onLocationSelect={handleLocationSelect} />
@@ -167,10 +204,11 @@ function App() {
             {showSchools && <SchoolMarkers />}
             {showHospitals && <HospitalMarkers />}
           </MapContainer>
-          <AQIChart 
-          station={selectedStation} 
-          onClose={() => setSelectedStation(null)} 
-        />
+
+          <AQIChart
+            station={selectedStation}
+            onClose={() => setSelectedStation(null)}
+          />
 
           {/* Legend */}
           <div style={{
