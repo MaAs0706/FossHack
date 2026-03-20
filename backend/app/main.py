@@ -5,6 +5,7 @@ from app.database import engine, get_db, Base
 from app.models import AQIReading
 from app.scheduler import start_scheduler, fetch_and_save_aqi
 import asyncio
+from app.osm import fetch_amenities
 
 load_dotenv()
 
@@ -42,3 +43,11 @@ def get_kerala_aqi(db: Session = Depends(get_db)):
             })
     
     return latest
+
+@app.get("/schools")
+async def get_schools():
+    return await fetch_amenities("school")
+
+@app.get("/hospitals")
+async def get_hospitals():
+    return await fetch_amenities("hospital")
