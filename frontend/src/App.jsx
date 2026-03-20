@@ -5,6 +5,7 @@ import SchoolMarkers from './components/SchoolMarkers'
 import HospitalMarkers from './components/HospitalMarkers'
 import RankingsSidebar from './components/RankingsSidebar'
 import MapController from './components/MapController'
+import AQIChart from './components/AQIChart'
 
 function getColor(aqi) {
   if (aqi <= 50) return '#00e400'
@@ -39,6 +40,7 @@ function App() {
   const [showHospitals, setShowHospitals] = useState(false)
   const [flyTo, setFlyTo] = useState(null)
   const [selectedLocation, setSelectedLocation] = useState(null)
+  const [selectedStation, setSelectedStation] = useState(null)
 
   useEffect(() => {
     fetch('http://localhost:8000/aqi/kerala')
@@ -128,6 +130,9 @@ function App() {
                 color="#fff"
                 weight={1}
                 fillOpacity={0.9}
+                eventHandlers={{
+                  click: () => setSelectedStation(station)
+                }}
               >
                 <Popup>
                   <strong>{station.name}</strong><br />
@@ -162,6 +167,10 @@ function App() {
             {showSchools && <SchoolMarkers />}
             {showHospitals && <HospitalMarkers />}
           </MapContainer>
+          <AQIChart 
+          station={selectedStation} 
+          onClose={() => setSelectedStation(null)} 
+        />
 
           {/* Legend */}
           <div style={{

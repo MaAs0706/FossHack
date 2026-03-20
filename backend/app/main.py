@@ -7,6 +7,7 @@ from app.models import AQIReading
 from app.scheduler import start_scheduler, fetch_and_save_aqi
 from app.osm import fetch_amenities
 from app.scoring import calculate_vulnerability_score, get_risk_level
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 
@@ -30,6 +31,24 @@ osm_cache = {
 async def startup():
     await fetch_and_save_aqi()
     start_scheduler()
+
+@app.get("/aqi/history/{station_name}")
+def get_station_history(station_name: str, db: Session = Depends(get_db)):
+    since = datetime.now(timezone.utc) - timedelta(hours=24)
+    
+    readings = db.query(AQIReading)\
+                 .filter(AQIReading.name == station_name)\
+                 .filter(AQIReading.recorded_at >= since)\
+                 .order_by(AQIReading.recorded_at.asc())\
+                 .all()
+    
+    return [
+        {
+            "aqi": r.aqi,
+            "recorded_at": r.recorded_at
+        }
+        for r in readings
+    ]    
 
 @app.get("/")
 def hello():
