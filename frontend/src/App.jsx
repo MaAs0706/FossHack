@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import SchoolMarkers from './components/SchoolMarkers'
 import HospitalMarkers from './components/HospitalMarkers'
+import RankingsSidebar from './components/RankingsSidebar'
 
 function getColor(aqi) {
   if (aqi <= 50) return '#00e400'
@@ -92,7 +93,9 @@ function App() {
           </button>
         </div>
       </div>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
+        <RankingsSidebar />
       {/* Map */}
       <div style={{ flex: 1, position: 'relative' }}>
         <MapContainer
@@ -155,6 +158,7 @@ function App() {
               <span>{item.label}</span>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>
