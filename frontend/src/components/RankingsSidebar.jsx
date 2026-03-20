@@ -9,7 +9,7 @@ function getRiskColor(score) {
   return '#7e0023'
 }
 
-function RankingsSidebar() {
+function RankingsSidebar({ onLocationSelect }) {
   const [schools, setSchools] = useState([])
   const [hospitals, setHospitals] = useState([])
   const [activeTab, setActiveTab] = useState('schools')
@@ -39,12 +39,11 @@ function RankingsSidebar() {
       flexShrink: 0,
       overflowY: 'auto'
     }}>
-      
+
       <div style={{ padding: '16px', borderBottom: '1px solid #333' }}>
         <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '12px' }}>
           ⚠️ At-Risk Locations
         </div>
-
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={() => setActiveTab('schools')}
@@ -79,7 +78,6 @@ function RankingsSidebar() {
         </div>
       </div>
 
-      
       <div style={{ padding: '12px', flex: 1 }}>
         {loading ? (
           <div style={{ color: '#aaa', fontSize: '13px', textAlign: 'center', marginTop: '20px' }}>
@@ -87,13 +85,27 @@ function RankingsSidebar() {
           </div>
         ) : (
           items.map((item, i) => (
-            <div key={i} style={{
-              background: '#252540',
-              borderRadius: '8px',
-              padding: '10px 12px',
-              marginBottom: '8px',
-              borderLeft: `4px solid ${getRiskColor(item.vulnerability_score)}`
-            }}>
+            <div
+              key={i}
+              onClick={() => onLocationSelect({ 
+  lat: item.lat, 
+  lng: item.lng,
+  name: item.name,
+  score: item.vulnerability_score,
+  risk_level: item.risk_level
+})}
+              onMouseEnter={e => e.currentTarget.style.background = '#333355'}
+              onMouseLeave={e => e.currentTarget.style.background = '#252540'}
+              style={{
+                background: '#252540',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                marginBottom: '8px',
+                borderLeft: `4px solid ${getRiskColor(item.vulnerability_score)}`,
+                cursor: 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >
               <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '4px' }}>
                 #{i + 1} {icon}
               </div>

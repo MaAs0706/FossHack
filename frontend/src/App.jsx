@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import SchoolMarkers from './components/SchoolMarkers'
 import HospitalMarkers from './components/HospitalMarkers'
 import RankingsSidebar from './components/RankingsSidebar'
+import MapController from './components/MapController'
 
 function getColor(aqi) {
   if (aqi <= 50) return '#00e400'
@@ -36,12 +37,19 @@ function App() {
   const [stations, setStations] = useState([])
   const [showSchools, setShowSchools] = useState(false)
   const [showHospitals, setShowHospitals] = useState(false)
+  const [flyTo, setFlyTo] = useState(null)
+  const [selectedLocation, setSelectedLocation] = useState(null)
 
   useEffect(() => {
     fetch('http://localhost:8000/aqi/kerala')
       .then(res => res.json())
       .then(data => setStations(data))
   }, [])
+
+  const handleLocationSelect = (location) => {
+    setFlyTo(location)
+    setSelectedLocation(location)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -93,72 +101,94 @@ function App() {
           </button>
         </div>
       </div>
+
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        <RankingsSidebar />
-      {/* Map */}
-      <div style={{ flex: 1, position: 'relative' }}>
-        <MapContainer
-          center={[10.5, 76.5]}
-          zoom={8}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          {stations.map((station, i) => (
-            <CircleMarker
-              key={i}
-              center={[station.lat, station.lng]}
-              radius={12}
-              fillColor={getColor(station.aqi)}
-              color="#fff"
-              weight={1}
-              fillOpacity={0.9}
-            >
-              <Popup>
-                <strong>{station.name}</strong><br />
-                AQI: {station.aqi}<br />
-                <span style={{ color: getColor(station.aqi) === '#ffff00' ? '#999' : getColor(station.aqi) }}>
-                  {getRiskLabel(station.aqi)}
-                </span><br />
-                <small style={{ color: '#888' }}>
-                  Updated: {new Date(station.recorded_at).toLocaleTimeString()}
-                </small>
-              </Popup>
-            </CircleMarker>
-          ))}
-          {showSchools && <SchoolMarkers />}
-          {showHospitals && <HospitalMarkers />}
-        </MapContainer>
+        <RankingsSidebar onLocationSelect={handleLocationSelect} />
 
-        {/* Legend */}
-        <div style={{
-          position: 'absolute',
-          bottom: '30px',
-          right: '10px',
-          background: 'white',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-          zIndex: 1000,
-          fontSize: '12px'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>AQI Legend</div>
-          {LEGEND_ITEMS.map((item, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <div style={{
-                width: '14px', height: '14px',
-                borderRadius: '50%',
-                background: item.color,
-                border: '1px solid #ccc',
-                flexShrink: 0
-              }} />
-              <span>{item.label}</span>
-            </div>
-          ))}
-        </div>
+        {/* Map */}
+        <div style={{ flex: 1, position: 'relative' }}>
+          <MapContainer
+            center={[10.5, 76.5]}
+            zoom={8}
+            style={{ height: '100%', width: '100%' }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; OpenStreetMap contributors'
+            />
+            <MapController flyTo={flyTo} />
+
+            {stations.map((station, i) => (
+              <CircleMarker
+                key={i}
+                center={[station.lat, station.lng]}
+                radius={12}
+                fillColor={getColor(station.aqi)}
+                color="#fff"
+                weight={1}
+                fillOpacity={0.9}
+              >
+                <Popup>
+                  <strong>{station.name}</strong><br />
+                  AQI: {station.aqi}<br />
+                  <span style={{ color: getColor(station.aqi) === '#ffff00' ? '#999' : getColor(station.aqi) }}>
+                    {getRiskLabel(station.aqi)}
+                  </span><br />
+                  <small style={{ color: '#888' }}>
+                    Updated: {new Date(station.recorded_at).toLocaleTimeString()}
+                  </small>
+                </Popup>
+              </CircleMarker>
+            ))}
+
+            {selectedLocation && (
+              <CircleMarker
+                center={[selectedLocation.lat, selectedLocation.lng]}
+                radius={20}
+                fillColor="#fff"
+                color="#ff6b6b"
+                weight={3}
+                fillOpacity={0.4}
+              >
+                <Popup>
+                  <strong>{selectedLocation.name}</strong><br />
+                  Vulnerability Score: {selectedLocation.score}<br />
+                  {selectedLocation.risk_level}
+                </Popup>
+              </CircleMarker>
+            )}
+
+            {showSchools && <SchoolMarkers />}
+            {showHospitals && <HospitalMarkers />}
+          </MapContainer>
+
+          {/* Legend */}
+          <div style={{
+            position: 'absolute',
+            bottom: '30px',
+            right: '10px',
+            background: 'white',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            zIndex: 1000,
+            fontSize: '12px'
+          }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>AQI Legend</div>
+            {LEGEND_ITEMS.map((item, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <div style={{
+                  width: '14px', height: '14px',
+                  borderRadius: '50%',
+                  background: item.color,
+                  border: '1px solid #ccc',
+                  flexShrink: 0
+                }} />
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
