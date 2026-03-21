@@ -1,9 +1,49 @@
-* {
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body {
+:root {
+  --bg-primary: #070d1a;
+  --bg-secondary: #0d1626;
+  --bg-card: #111d33;
+  --bg-card-hover: #162240;
+  --accent-cyan: #00d4ff;
+  --accent-teal: #00b894;
+  --accent-danger: #ff4757;
+  --accent-warning: #ffa502;
+  --text-primary: #e8f4fd;
+  --text-secondary: #7a9cc4;
+  --text-muted: #4a6080;
+  --border: #1a2d4a;
+  --border-bright: #1e3a5f;
+  --font-main: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html, body, #root {
   height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 2px;
 }
